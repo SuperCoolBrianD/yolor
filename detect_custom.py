@@ -1,19 +1,19 @@
-import argparse
-import os
-import platform
-import shutil
-import time
-from pathlib import Path
-
-import cv2
-import torch
+# import argparse
+# import os
+# import platform
+# import shutil
+# import time
+# from pathlib import Path
+#
+# import cv2
+# import torch
 import torch.backends.cudnn as cudnn
 from numpy import random
-from utils.datasets import letterbox
-from utils.google_utils import attempt_load
-from utils.datasets import LoadStreams, LoadImages
-from utils.general import (
-    check_img_size, non_max_suppression, apply_classifier, scale_coords, xyxy2xywh, strip_optimizer)
+# from utils.datasets import letterbox
+# from utils.google_utils import attempt_load
+# from utils.datasets import LoadStreams, LoadImages
+# from utils.general import (
+#     check_img_size, non_max_suppression, apply_classifier, scale_coords, xyxy2xywh, strip_optimizer)
 from utils.plots import plot_one_box
 from utils.torch_utils import select_device, load_classifier, time_synchronized
 
@@ -29,13 +29,12 @@ def load_classes(path):
     return list(filter(None, names))  # filter removes empty strings (such as last line)
 
 
-def init_yoloR(weights='yolor_p6.pt', cfg='cfg/yolor_p6.cfg', names='data/coco.names', out='inference/output', imgsz=1280):
+def init_yoloR(weights='yolor_p6.pt', cfg='cfg/yolor_p6.cfg', names='data/coco.names', out='inference/output', imgsz=1280, half=True):
     device = select_device()
     if os.path.exists(out):
         shutil.rmtree(out)  # delete output folder
     os.makedirs(out)  # make new output folder
-    half = device.type != 'cpu'  # half precision only supported on CUDA
-
+    # half = device.type != 'cpu'  # half precision only supported on CUDA
     # Load model
     model = Darknet(cfg, imgsz).cuda()
     model.load_state_dict(torch.load(weights, map_location=device)['model'])
@@ -99,9 +98,10 @@ def detect(source, device, model, colors, names, half=True, view_img=True, imgsz
 
             # Write results
             for *xyxy, conf, cls in det:
-                detections. append([[int(i) for i in xyxy], names[int(cls)], float(conf)])
                 label = '%s %.2f' % (names[int(cls)], conf)
-                plot_one_box(xyxy, im0, label=label, color=colors[int(cls)], line_thickness=1)
+                if names[int(cls)] in ['car', 'person', 'truck', 'bus']:
+                    detections. append([[int(i) for i in xyxy], names[int(cls)], float(conf)])
+                    plot_one_box(xyxy, im0, label=label, color=colors[int(cls)], line_thickness=1)
 
         # Print time (inference + NMS)
 
@@ -113,7 +113,7 @@ def detect(source, device, model, colors, names, half=True, view_img=True, imgsz
     if view_img:
         cv2.waitKey(0)
 
-    print('Camera Detection Time. (%.3fs)' % (time.time() - t0))
+    # print('Camera Detection Time. (%.3fs)' % (time.time() - t0))
     return im0, detections
 
 if __name__ == '__main__':
